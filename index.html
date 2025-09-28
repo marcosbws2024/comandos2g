@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Comandos E3+ (Manual)</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; transition: background-color 0.3s, color 0.3s; }
+        .card { border-radius: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        textarea { resize: vertical; min-height: 150px; }
+        .btn i { margin-right: 6px; }
+        .dark-mode { background-color: #212529 !important; color: #f8f9fa !important; }
+        .dark-mode .card { background-color: #2c3034; color: #f8f9fa; }
+        .dark-mode textarea { background-color: #343a40; color: #f8f9fa; border: 1px solid #495057; }
+        .form-check.form-switch { padding-left: 3.5rem; }
+    </style>
+</head>
+<body>
+
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold">Gerador de Comandos E3+ (Manual)</h2>
+        <button class="btn btn-outline-secondary" id="toggleMode"><i class="bi bi-moon"></i> Modo Escuro</button>
+    </div>
+
+    <div class="card p-4 mb-4">
+        <h5 class="mb-3">Selecione e Preencha os Comandos</h5>
+        <div class="row g-3">
+            <div class="col-md-12">
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="cmdReg" checked disabled>
+                    <label class="form-check-label" for="cmdReg">REG000000# (Obrigatório)</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="cmdSMS" checked disabled>
+                    <label class="form-check-label" for="cmdSMS">SMS1 (Obrigatório)</label>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="cmdLang">
+                    <label class="form-check-label" for="cmdLang">Idioma</label>
+                </div>
+                <select id="langSelect" class="form-select mt-1">
+                    <option value="en">Inglês (EN)</option>
+                    <option value="cn">Chinês (CN)</option>
+                </select>
+            </div>
+            
+            <div class="col-md-8">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="cmdApn">
+                    <label class="form-check-label" for="cmdApn">APN</label>
+                </div>
+                <div class="row g-2 mt-1">
+                    <div class="col-md-6">
+                        <select id="apnSelect" class="form-select" onchange="fillApnFields()">
+                            <option value="">-- Selecione APN --</option>
+                            <option data-user="bws" data-pass="bws" value="bws.br">BWS</option>
+                            <option data-user="vivo" data-pass="vivo" value="zap.vivo.com.br">Vivo Genérica</option>
+                            <option data-user="claro" data-pass="claro" value="generica.claro.com.br">Claro Genérica</option>
+                            <option data-user="allcom" data-pass="allcom" value="allcom.vivo.com.br">Allcom Vivo</option>
+                            <option data-user="allcom" data-pass="allcom" value="allcom.claro.com.br">Allcom Claro</option>
+                            <option data-user="allcom" data-pass="allcom" value="allcom.br">Algar</option>
+                            <option data-user="allcom" data-pass="allcom" value="allcom.arquia.com.br">Arquia</option>
+                            <option data-user="virtu" data-pass="virtu" value="virtueyes.com.br">Virtueyes</option>
+                            <option data-user="tmdata" data-pass="tmdata" value="tmdata.vivo.com.br">Tmdata Vivo</option>
+                            <option data-user="tmdata" data-pass="tmdata" value="tmdata.claro.com.br">Tmdata Claro</option>
+                            <option data-user="tmdata" data-pass="tmdata" value="tmdata.tim.br">Tmdata Tim</option>
+                            <option data-user="link" data-pass="link" value="linksolutions.br">Link / TNS</option>
+                            <option data-user="" data-pass="" value="iot.1nce.net">1NCE</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <input id="apnName" class="form-control" placeholder="APN: ex. bws.br">
+                    </div>
+                    <div class="col-md-6">
+                        <input id="apnUser" class="form-control" placeholder="Usuário: ex. bws">
+                    </div>
+                    <div class="col-md-6">
+                        <input id="apnPass" class="form-control" placeholder="Senha: ex. bws">
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="cmdIpDns">
+                    <label class="form-label" for="cmdIpDns">IP / DNS</label>
+                </div>
+                <div class="row g-2 mt-1">
+                    <div class="col-md-12">
+                        <select id="dnsPlatformSelect" class="form-select" onchange="fillDnsPlatform()">
+                            <option value="">-- Selecione Plataforma DNS --</option>
+                            <option value="gw.bws-infra.com">BWS Infra (gw.bws-infra.com)</option>
+                            <option value="Outro">Outra (Preencher Manualmente)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <select id="dnsModuleSelect" class="form-select" onchange="fillDnsPort()">
+                            <option value="">-- Tipo de Módulo --</option>
+                            <option value="6000">E3+ 2G (Porta 6000)</option>
+                            <option value="6001">E3+ 4G (Porta 6001)</option>
+                            <option value="7001">NB2 (Porta 7001)</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <input id="dnsHost" class="form-control" placeholder="Host DNS: ex. powertec.com">
+                    </div>
+                    <div class="col-md-6 offset-md-6">
+                        <input id="dnsPort" class="form-control" placeholder="Porta: ex. 7418">
+                    </div>
+
+                    <div class="col-md-6"><input id="ip1Addr" class="form-control" placeholder="IP1: ex. 192.168.0.1"></div>
+                    <div class="col-md-6"><input id="ip1Port" class="form-control" placeholder="Porta: ex. 5000"></div>
+                    <div class="col-md-6"><input id="ip2Addr" class="form-control" placeholder="IP2: ex. 192.168.0.2"></div>
+                    <div class="col-md-6"><input id="ip2Port" class="form-control" placeholder="Porta: ex. 5001"></div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="cmdHbShb">
+                    <label class="form-check-label" for="cmdHbShb">Tempos de Transmissão (HB / SHB)</label>
+                </div>
+                <div class="row g-2 mt-1">
+                    <div class="col-md-6"><input type="number" id="hbMin" class="form-control" placeholder="HB (min)"></div>
+                    <div class="col-md-6"><input type="number" id="shbHours" class="form-control" placeholder="SHB (horas)"></div>
+                </div>
+            </div>
+
+            <hr class="mt-4">
+            <h5 class="mb-3">Alertas e Funções Específicas</h5>
+
+            <div class="col-md-6">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="cmdPasswordGroup">
+                    <label class="form-check-label" for="cmdPasswordGroup">Senha do Dispositivo (MODIFYPW/XGMM)</label>
+                </div>
+                <div class="row g-2 mt-1">
+                    <div class="col-md-6"><input type="text" id="oldPassword" class="form-control" placeholder="Senha Antiga (ex: 000000)"></div>
+                    <div class="col-md-6"><input type="text" id="newPassword" class="form-control" placeholder="Nova Senha (ex: 123456)"></div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="cmdEngineLockGroup">
+                    <label class="form-check-label" for="cmdEngineLockGroup">Controle do Motor</label>
+                </div>
+                <select id="engineLockToggle" class="form-select mt-1">
+                    <option value="">-- Selecione --</option>
+                    <option value="lock_motor">Bloquear (ENGOFF / DD)</option>
+                    <option value="unlock_motor">Desbloquear (ENGON / TD)</option>
+                </select>
+            </div>
+
+            <div class="col-md-6">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="cmdIgniAlertGroup">
+                    <label class="form-check-label" for="cmdIgniAlertGroup">Alerta de Ignição</label>
+                </div>
+                <div class="form-check form-switch mt-1">
+                    <input class="form-check-input" type="checkbox" id="igniAlert" checked>
+                    <label class="form-check-label" for="igniAlert">Habilitar (BJ1) / Desabilitar (BJ0)</label>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="cmdGprsAlertGroup">
+                    <label class="form-check-label" for="cmdGprsAlertGroup">Alerta de Falha de GPRS</label>
+                </div>
+                <div class="form-check form-switch mt-1">
+                    <input class="form-check-input" type="checkbox" id="gprsAlert" checked>
+                    <label class="form-check-label" for="gprsAlert">Habilitar (JD1) / Desabilitar (JD0)</label>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="cmdViolationGroup">
+                    <label class="form-check-label" for="cmdViolationGroup">Alerta de Violação (Fio Branco)</label>
+                </div>
+                <div class="form-check form-switch mt-1">
+                    <input class="form-check-input" type="checkbox" id="violationToggle" checked>
+                    <label class="form-check-label" for="violationToggle">Habilitar (NEGATIVE) / Desabilitar (MASTER)</label>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="cmdPanicGroup">
+                    <label class="form-check-label" for="cmdPanicGroup">Botão de Pânico</label>
+                </div>
+                <div class="form-check form-switch mt-1">
+                    <input class="form-check-input" type="checkbox" id="panicToggle" checked>
+                    <label class="form-check-label" for="panicToggle">Habilitar (SLAVE) / Desabilitar (MASTER)</label>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="cmdLedGroup">
+                    <label class="form-check-label" for="cmdLedGroup">Controle de LED</label>
+                </div>
+                <div class="form-check form-switch mt-1">
+                    <input class="form-check-input" type="checkbox" id="ledToggle" checked>
+                    <label class="form-check-label" for="ledToggle">LED Ligado (LEDON) / Desligado (LEDOFF)</label>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="cmdSpeedAlertGroup">
+                    <label class="form-check-label" for="cmdSpeedAlertGroup">Alerta de Alta Velocidade (SPEEDn/CSn)</label>
+                </div>
+                <div class="mt-1">
+                    <input type="number" id="speedValue" class="form-control" placeholder="Velocidade (km/h) - 0 para desligar (SPEED0/SC0)">
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="cmdEcoModeGroup">
+                    <label class="form-check-label" for="cmdEcoModeGroup">Modo de Economia</label>
+                </div>
+                <select id="ecoMode" class="form-select mt-1">
+                    <option value="">-- Selecione --</option>
+                    <option value="SDMS0">GPS Ligado (em sleep)</option>
+                    <option value="SDMS1">GPS Desligado (em sleep)</option>
+                </select>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="cmdLockTypeGroup">
+                    <label class="form-check-label" for="cmdLockTypeGroup">Tipo de Bloqueio</label>
+                </div>
+                <select id="lockType" class="form-select mt-1">
+                    <option value="">-- Selecione --</option>
+                    <option value="MODE1">Progressivo</option>
+                    <option value="MODE2">Instantâneo</option>
+                    <option value="MODE3">Inverso (instantâneo)</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="cmdDkGroup">
+                    <label class="form-check-label" for="cmdDkGroup">Hodômetro (DKn)</label>
+                </div>
+                <div class="mt-1">
+                    <input type="number" id="dkValue" class="form-control" placeholder="Hodômetro (km)">
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="cmdIvGroup">
+                    <label class="form-check-label" for="cmdIvGroup">Ignição Virtual</label>
+                </div>
+                <div class="form-check form-switch mt-1">
+                    <input class="form-check-input" type="checkbox" id="ivToggle" checked>
+                    <label class="form-check-label" for="ivToggle">Habilitar (IVON) / Desabilitar (IVOFF)</label>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="cmdTimezoneGroup">
+                    <label class="form-check-label" for="cmdTimezoneGroup">Fuso Horário (TZE0/TZW0)</label>
+                </div>
+                <select id="timezoneSelect" class="form-select mt-1">
+                    <option value="">-- Selecione --</option>
+                    <option value="TZE0">Leste (TZE0)</option>
+                    <option value="TZW0">Oeste (TZW0)</option>
+                </select>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="cmdGsSenseGroup">
+                    <label class="form-check-label" for="cmdGsSenseGroup">Sensibilidade G-Sensor (GSn)</label>
+                </div>
+                <div class="mt-1">
+                    <input type="number" id="gsSenseValue" class="form-control" min="60" max="2000" placeholder="60 (mais sensível) - 2000 (menos sensível)">
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="cmdSenseGroup">
+                    <label class="form-check-label" for="cmdSenseGroup">Sensibilidade (Antiga SENSE/ZD)</label>
+                </div>
+                <div class="mt-1">
+                    <input type="number" id="senseValue" class="form-control" min="0" max="10" placeholder="0 (mais sensível) - 10 (menos sensível)">
+                </div>
+            </div>
+
+            <hr class="mt-4">
+            <h5 class="mb-3">Comandos de Verificação e Posição (Requerem Resposta SMS)</h5>
+
+            <div class="col-md-6">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="cmdLbsPosGroup">
+                    <label class="form-check-label" for="cmdLbsPosGroup">Posição de LBS (LBS / JZ)</label>
+                </div>
+                <div class="form-check form-switch mt-1">
+                    <input class="form-check-input" type="checkbox" id="lbsPosToggle" checked>
+                    <label class="form-check-label" for="lbsPosToggle">Gerar Comando (LBS / JZ)</label>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="cmdGpsPosGroup">
+                    <label class="form-check-label" for="cmdGpsPosGroup">Posição de GPS (LOCA / DW)</label>
+                </div>
+                <div class="form-check form-switch mt-1">
+                    <input class="form-check-input" type="checkbox" id="gpsPosToggle" checked>
+                    <label class="form-check-label" for="gpsPosToggle">Gerar Comando (LOCA / DW)</label>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="cmdGpsGoogleGroup">
+                    <label class="form-check-label" for="cmdGpsGoogleGroup">Posição Google (GOOGLE / G)</label>
+                </div>
+                <div class="form-check form-switch mt-1">
+                    <input class="form-check-input" type="checkbox" id="gpsGoogleToggle" checked>
+                    <label class="form-check-label" for="gpsGoogleToggle">Gerar Comando (GOOGLE / G)</label>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="cmdLbsToggleGroup">
+                    <label class="form-check-label" for="cmdLbsToggleGroup">Habilitar/Desabilitar LBS</label>
+                </div>
+                <div class="form-check form-switch mt-1">
+                    <input class="form-check-input" type="checkbox" id="lbsToggle" checked>
+                    <label class="form-check-label" for="lbsToggle">LBS Ligado (LBSON) / Desligado (LBSOFF)</label>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="cmdCheck">
+                    <label class="form-check-label" for="cmdCheck">Verificar Configurações (CHECK / ZT)</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="cmdStatus">
+                    <label class="form-check-label" for="cmdStatus">Verificar Status (STATUS)</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="cmdImei">
+                    <label class="form-check-label" for="cmdImei">Verificar IMEI</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="cmdIccid">
+                    <label class="form-check-label" for="cmdIccid">Verificar ICCID</label>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="cmdRebootGroup">
+                    <label class="form-check-label" for="cmdRebootGroup">Reiniciar (RESTART/CQ/RST/CSH) - **SEMPRE POR ÚLTIMO**</label>
+                </div>
+                <select id="rebootToggle" class="form-select mt-1">
+                    <option value="">-- Selecione --</option>
+                    <option value="RESTART">RESTART / CQ (Padrão)</option>
+                    <option value="RST">RST / CSH (Configuração Padrão)</option>
+                </select>
+                <div class="form-text mt-1 text-muted">
+                    RST/CSH limpa as configurações para o padrão de fábrica.
+                </div>
+            </div>
+
+        </div>
+
+        <div class="form-text mt-3">
+            <button class="btn btn-primary" onclick="generateCommands()"><i class="bi bi-plug-fill"></i> Gerar Comandos</button>
+            <p class="mt-2">Clique para gerar a sequência de comandos selecionados.</p>
+        </div>
+
+        <hr>
+
+        <div class="mb-3">
+            <label for="inputText" class="form-label fw-semibold">Comandos Gerados (Linha a Linha):</label>
+            <textarea id="inputText" class="form-control" placeholder="A sequência de comandos aparecerá aqui..."></textarea>
+        </div>
+
+        <div class="row g-3 mb-3">
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Modo de conversão:</label>
+                <select id="mode" class="form-select">
+                    <option value="group">Agrupar (até N comandos por linha)</option>
+                    <option value="line">Linha a linha</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Máximo de comandos por linha:</label>
+                <input type="number" id="maxPerLine" class="form-control" value="4" min="1">
+            </div>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2">
+            <button class="btn btn-primary" onclick="convert()"><i class="bi bi-arrow-left-right"></i> Converter</button>
+            <button class="btn btn-success" onclick="copyOutput()"><i class="bi bi-clipboard"></i> Copiar</button>
+            <button class="btn btn-info text-white" onclick="downloadOutput()"><i class="bi bi-download"></i> Baixar</button>
+            <button class="btn btn-danger" onclick="clearAll()"><i class="bi bi-x-circle"></i> Limpar</button>
+        </div>
+        <div class="mb-3 mt-3">
+            <label for="outputText" class="form-label fw-semibold">Resultado Convertido (Agrupado):</label>
+            <textarea id="outputText" class="form-control" readonly placeholder="O resultado aparecerá aqui..."></textarea>
+        </div>
+    </div>
+</div>
+
+<script>
+    /* ================= Funções básicas ================= */
+    function appendToInput(text){
+        const area = document.getElementById('inputText');
+        area.value = text;
+        area.focus();
+    }
+
+    function copyOutput(){
+        const output = document.getElementById("outputText");
+        output.select();
+        document.execCommand("copy");
+        alert("Resultado copiado!");
+    }
+
+    function downloadOutput(){
+        const text = document.getElementById("outputText").value;
+        const blob = new Blob([text], { type: "text/plain" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "comandos.txt";
+        link.click();
+    }
+
+    function clearAll(){
+        document.getElementById("inputText").value = "";
+        document.getElementById("outputText").value = "";
+        
+        const formElements = document.querySelectorAll('.card input, .card select');
+        formElements.forEach(element => {
+            const type = element.type;
+            switch(type){
+                case 'checkbox':
+                    // Mantém os comandos obrigatórios marcados
+                    if(element.id === 'cmdReg' || element.id === 'cmdSMS'){
+                        element.checked = true;
+                    } else {
+                        element.checked = false;
+                    }
+                    // Reseta os toggles para o estado inicial (checado)
+                    if (['igniAlert', 'gprsAlert', 'ledToggle', 'ivToggle', 'gpsPosToggle', 'gpsGoogleToggle', 'violationToggle', 'panicToggle', 'lbsToggle'].includes(element.id)) {
+                        element.checked = true;
+                    }
+                    break;
+                case 'text':
+                case 'number':
+                case 'hidden':
+                    if (element.id !== 'maxPerLine') element.value = '';
+                    break;
+                default:
+                    if (element.tagName === 'SELECT') {
+                        element.selectedIndex = 0;
+                    }
+                    break;
+            }
+        });
+        document.getElementById('maxPerLine').value = 4; // Reset do maxPerLine
+    }
+
+    function fillApnFields(){
+        const select = document.getElementById('apnSelect');
+        const selected = select.options[select.selectedIndex];
+        document.getElementById('apnName').value = selected.value || '';
+        document.getElementById('apnUser').value = selected.dataset.user || '';
+        document.getElementById('apnPass').value = selected.dataset.pass || '';
+    }
+
+    function fillDnsPlatform() {
+        const select = document.getElementById('dnsPlatformSelect');
+        const hostInput = document.getElementById('dnsHost');
+        
+        hostInput.value = select.value === "Outro" ? "" : select.value;
+    }
+
+    function fillDnsPort() {
+        const portSelect = document.getElementById('dnsModuleSelect');
+        const portInput = document.getElementById('dnsPort');
+        
+        portInput.value = portSelect.value;
+    }
+
+    /* ================= GERADOR MANUAL (RESTART POR ÚLTIMO) ================= */
+    function generateCommands() {
+        const normalCommands = ['REG000000#', 'SMS1']; // Comandos iniciais obrigatórios
+        const rebootCommands = [];
+        const lang = document.getElementById('langSelect').value;
+        const password = document.getElementById('oldPassword').value.trim();
+
+        // --- Geração de Comandos Normais ---
+
+        if (document.getElementById('cmdLang').checked) {
+            normalCommands.push(lang === 'en' ? 'EN' : 'CN');
+        }
+
+        if (document.getElementById('cmdApn').checked) {
+            const apn = document.getElementById('apnName').value.trim();
+            const user = document.getElementById('apnUser').value.trim();
+            const pass = document.getElementById('apnPass').value.trim();
+            if (apn) {
+                // Adiciona a senha do dispositivo se houver, se não usa a senha padrão (000000)
+                const apnPass = password || '000000';
+                normalCommands.push(`APN*${apn}*${user}*${pass}#${apnPass}`);
+            }
+        }
+        
+        if (document.getElementById('cmdIpDns').checked) {
+            const ip1 = document.getElementById('ip1Addr').value.trim();
+            const ip1Port = document.getElementById('ip1Port').value.trim();
+            const ip2 = document.getElementById('ip2Addr').value.trim();
+            const ip2Port = document.getElementById('ip2Port').value.trim();
+            const dns = document.getElementById('dnsHost').value.trim();
+            const dnsPort = document.getElementById('dnsPort').value.trim();
+            
+            // Lógica de validação IP vs DNS
+            if ((ip1 || ip2) && dns) {
+                alert('Escolha apenas IPs ou DNS, não ambos.');
+                return;
+            } 
+            
+            const devicePass = password || '000000';
+
+            if (ip1 || ip2) {
+                // Se for IP
+                if (ip1) normalCommands.push(`IP1#${ip1}#${ip1Port}#${devicePass}`);
+                if (ip2) normalCommands.push(`IP2#${ip2}#${ip2Port}#${devicePass}`);
+            } else if (dns && dnsPort) {
+                // Se for DNS
+                normalCommands.push(`DNS#${dns}#${dnsPort}#${devicePass}`);
+            }
+        }
+
+        if (document.getElementById('cmdHbShb').checked) {
+            const hbMin = parseInt(document.getElementById('hbMin').value);
+            const shbHours = parseInt(document.getElementById('shbHours').value);
+            // Adiciona a senha do dispositivo se houver, se não usa a senha padrão (000000)
+            const devicePass = password || '000000'; 
+            if (hbMin) normalCommands.push(`HB${hbMin * 60}#${devicePass}`);
+            if (shbHours) normalCommands.push(`SHB${shbHours * 3600}#${devicePass}`);
+        }
+
+        // NOVO: SENHA DO DISPOSITIVO
+        if (document.getElementById('cmdPasswordGroup').checked) {
+            const oldPass = document.getElementById('oldPassword').value.trim();
+            const newPass = document.getElementById('newPassword').value.trim();
+            if (oldPass && newPass) {
+                const cmd = lang === 'en' ? `MODIFYPW${oldPass}${newPass}` : `XGMM${oldPass}${newPass}`;
+                normalCommands.push(cmd);
+            }
+        }
+
+        // NOVO: CONTROLE DE MOTOR
+        if (document.getElementById('cmdEngineLockGroup').checked) {
+            const engineToggle = document.getElementById('engineLockToggle').value;
+            if (engineToggle) {
+                let cmd = '';
+                if (engineToggle === 'lock_motor') {
+                    cmd = lang === 'en' ? 'ENGOFF' : 'DD';
+                } else if (engineToggle === 'unlock_motor') {
+                    cmd = lang === 'en' ? 'ENGON' : 'TD';
+                }
+                if (cmd) normalCommands.push(cmd);
+            }
+        }
+
+        if (document.getElementById('cmdIgniAlertGroup').checked) {
+            normalCommands.push(document.getElementById('igniAlert').checked ? 'BJ1' : 'BJ0');
+        }
+
+        if (document.getElementById('cmdGprsAlertGroup').checked) {
+            normalCommands.push(document.getElementById('gprsAlert').checked ? 'JD1' : 'JD0');
+        }
+
+        // NOVO: VIOLAÇÃO DE MÓDULO
+        if (document.getElementById('cmdViolationGroup').checked) {
+            normalCommands.push(document.getElementById('violationToggle').checked ? 'NEGATIVE' : 'MASTER');
+        }
+
+        // NOVO: BOTÃO DE PÂNICO
+        if (document.getElementById('cmdPanicGroup').checked) {
+            normalCommands.push(document.getElementById('panicToggle').checked ? 'SLAVE' : 'MASTER');
+        }
+
+        if (document.getElementById('cmdLedGroup').checked) {
+            normalCommands.push(document.getElementById('ledToggle').checked ? 'LEDON' : 'LEDOFF');
+        }
+
+        if (document.getElementById('cmdSpeedAlertGroup').checked) {
+            const speed = document.getElementById('speedValue').value.trim();
+            if (speed) {
+                normalCommands.push(lang === 'en' ? `SPEED${speed}` : `CS${speed}`);
+            } else {
+                normalCommands.push(lang === 'en' ? 'SPEED0' : 'SC0'); // SCn (desligado) no comando chinês
+            }
+        }
+
+        if (document.getElementById('cmdEcoModeGroup').checked) {
+            const ecoMode = document.getElementById('ecoMode').value;
+            if (ecoMode) {
+                normalCommands.push(ecoMode);
+            }
+        }
+
+        if (document.getElementById('cmdLockTypeGroup').checked) {
+            const lockType = document.getElementById('lockType').value;
+            if (lockType) {
+                normalCommands.push(lockType);
+            }
+        }
+        
+        if (document.getElementById('cmdDkGroup').checked) {
+            const dkValue = document.getElementById('dkValue').value.trim();
+            if (dkValue) {
+                normalCommands.push(`DK${dkValue}`);
+            }
+        }
+
+        if (document.getElementById('cmdIvGroup').checked) {
+            normalCommands.push(document.getElementById('ivToggle').checked ? 'IVON' : 'IVOFF');
+        }
+
+        if (document.getElementById('cmdTimezoneGroup').checked) {
+            const timezone = document.getElementById('timezoneSelect').value;
+            if (timezone) {
+                normalCommands.push(timezone);
+            }
+        }
+
+        // NOVO: SENSIBILIDADE G-SENSOR (GSn)
+        if (document.getElementById('cmdGsSenseGroup').checked) {
+            const gsSenseValue = document.getElementById('gsSenseValue').value.trim();
+            if (gsSenseValue) {
+                normalCommands.push(`GS${gsSenseValue}`);
+            }
+        }
+
+        // MANTIDO: SENSIBILIDADE ANTIGA (SENSE)
+        if (document.getElementById('cmdSenseGroup').checked) {
+            const senseValue = document.getElementById('senseValue').value.trim();
+            if (senseValue) {
+                normalCommands.push(lang === 'en' ? `SENSE${senseValue}` : `ZD=${senseValue}`);
+            }
+        }
+        
+        // --- Comandos de Verificação e Posição (Sempre são comandos de resposta SMS) ---
+
+        // NOVO: LBS POSIÇÃO
+        if (document.getElementById('cmdLbsPosGroup').checked && document.getElementById('lbsPosToggle').checked) {
+            normalCommands.push(lang === 'en' ? 'LBS' : 'JZ');
+        }
+        
+        // MANTIDO: GPS POSIÇÃO 1
+        if (document.getElementById('cmdGpsPosGroup').checked && document.getElementById('gpsPosToggle').checked) {
+            normalCommands.push(lang === 'en' ? 'LOCA' : 'DW');
+        }
+
+        // MANTIDO: GPS POSIÇÃO 2
+        if (document.getElementById('cmdGpsGoogleGroup').checked && document.getElementById('gpsGoogleToggle').checked) {
+            // GOOGLE é o comando em inglês, G é o chinês
+            normalCommands.push(lang === 'en' ? 'GOOGLE' : 'G'); 
+        }
+
+        // NOVO: LIGAR/DESLIGAR LBS
+        if (document.getElementById('cmdLbsToggleGroup').checked) {
+            normalCommands.push(document.getElementById('lbsToggle').checked ? 'LBSON' : 'LBSOFF');
+        }
+
+        // MANTIDO: CHECK / STATUS / NOVO: IMEI / ICCID
+        if (document.getElementById('cmdCheck').checked) {
+            normalCommands.push(lang === 'en' ? 'CHECK' : 'ZT');
+        }
+        if (document.getElementById('cmdStatus').checked) {
+            normalCommands.push('STATUS');
+        }
+        if (document.getElementById('cmdImei').checked) {
+            normalCommands.push('IMEI');
+        }
+        if (document.getElementById('cmdIccid').checked) {
+            normalCommands.push('ICCID');
+        }
+
+        // --- Geração de Comandos de Reinicialização (SEMPRE POR ÚLTIMO) ---
+        if (document.getElementById('cmdRebootGroup').checked) {
+            const rebootType = document.getElementById('rebootToggle').value;
+            if (rebootType) {
+                let cmd = '';
+                if (rebootType === 'RESTART') {
+                    cmd = lang === 'en' ? 'RESTART' : 'CQ';
+                } else if (rebootType === 'RST') {
+                    cmd = lang === 'en' ? 'RST' : 'CSH';
+                }
+                rebootCommands.push(cmd);
+            }
+        }
+
+        // --- Resultado Final ---
+        const finalCommands = normalCommands.concat(rebootCommands);
+
+        appendToInput(finalCommands.join('\n'));
+    }
+
+    /* ================= Conversor de comandos ================= */
+    function convert() {
+        const input = document.getElementById("inputText").value.trim();
+        const mode = document.getElementById("mode").value;
+        const maxPerLine = parseInt(document.getElementById("maxPerLine").value) || 4;
+        let lines = input.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
+
+        let output = "";
+        let cmds = [];
+        
+        // 1. Desagrupar e limpar todos os comandos
+        lines.forEach(l => {
+            // Verifica se a linha está agrupada (ex: *4;APN*...;...)
+            if(l.startsWith("*")){
+                // Remove o cabeçalho (*N;)
+                l = l.replace(/^\*\d+;/, ""); 
+                // Adiciona cada comando desagrupado à lista
+                cmds.push(...l.split(";").map(x => x.trim()).filter(x => x));
+            } else {
+                // Adiciona comandos que já estão separados por linha
+                cmds.push(l);
+            }
+        });
+
+        // Comandos de reinicialização (RESTART, CQ, RST, CSH) devem ir para o final.
+        const rebootCommands = [];
+        const filteredCmds = cmds.filter(cmd => {
+            const isReboot = ["RESTART", "CQ", "RST", "CSH"].includes(cmd.toUpperCase());
+            if (isReboot) {
+                rebootCommands.push(cmd);
+                return false; // Remove do array principal
+            }
+            return true;
+        });
+
+        const finalCmds = filteredCmds.concat(rebootCommands);
+
+        if(mode === "line"){
+            // Modo "Linha a Linha"
+            output = finalCmds.join("\n");
+        } else {
+            // Modo "Agrupar"
+            let grouped = [];
+            let buffer = [];
+            finalCmds.forEach(cmd => {
+                buffer.push(cmd);
+                if (buffer.length >= maxPerLine) {
+                    grouped.push("*" + buffer.length + ";" + buffer.join(";"));
+                    buffer = [];
+                }
+            });
+            // 4. Finalize qualquer comando restante no buffer
+            if (buffer.length > 0) {
+                grouped.push("*" + buffer.length + ";" + buffer.join(";"));
+            }
+            output = grouped.join("\n");
+        }
+        document.getElementById("outputText").value = output;
+    }
+
+    /* ================= Modo escuro ================= */
+    const toggleBtn = document.getElementById("toggleMode");
+    let dark = false;
+    toggleBtn.addEventListener("click", ()=>{
+        dark = !dark;
+        document.body.classList.toggle("dark-mode", dark);
+        toggleBtn.innerHTML = dark ? '<i class="bi bi-sun"></i> Modo Claro' : '<i class="bi bi-moon"></i> Modo Escuro';
+    });
+</script>
+</body>
+</html>
