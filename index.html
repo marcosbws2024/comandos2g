@@ -429,6 +429,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
 <script>
     /* ================= Funções básicas ================= */
     function appendToInput(text){
@@ -510,39 +511,61 @@
         portInput.value = portSelect.value;
     }
 
+    /* ================= FUNÇÃO PRINCIPAL DE CONVERSÃO (*3;) ================= */
     function convert() {
+        // 1. Coleta os dados de entrada e as configurações
         const input = document.getElementById("inputText").value;
-        const mode = document.getElementById("mode").value;
+        const mode = document.getElementById("mode").value; // 'group' ou 'line'
         const maxPerLine = parseInt(document.getElementById("maxPerLine").value) || 1;
-        const lines = input.split('\n').filter(line => line.trim() !== '');
+        
+        // Filtra linhas vazias e remove espaços em branco extras dos comandos
+        const lines = input.split('\n')
+                           .map(line => line.trim())
+                           .filter(line => line !== '');
+        
         let output = "";
 
+        // 2. Lógica de Conversão
         if (mode === 'line') {
+            // Modo "Linha a Linha": apenas junta os comandos separados por quebra de linha
             output = lines.join('\n');
+            
         } else if (mode === 'group') {
+            // Modo "Agrupar" (Formato *3;COMANDO1;COMANDO2;...)
             let temp = [];
+            
             for (let i = 0; i < lines.length; i++) {
+                // Adiciona o comando atual ao grupo temporário
                 temp.push(lines[i]);
+                
+                // Verifica se atingiu o limite de comandos por linha OU se é o último comando
                 if (temp.length >= maxPerLine || i === lines.length - 1) {
-                    output += temp.join(' ');
+                    
+                    // Formatação principal:
+                    output += `*3;${temp.join(';')}`;
+                    
+                    // Adiciona quebra de linha, mas APENAS se houver mais comandos para processar
                     if (i < lines.length - 1) {
                         output += '\n';
                     }
-                    temp = [];
+                    
+                    // Limpa o grupo para iniciar a próxima linha de comandos
+                    temp = []; 
                 }
             }
         }
+        
+        // 3. Exibe o resultado na caixa de texto de saída
         document.getElementById("outputText").value = output;
     }
 
-    /* ================= GERADOR MANUAL (RESTART POR ÚLTIMO) ================= */
+    /* ================= GERADOR MANUAL (SÓ É ACIONADO PELO BOTÃO) ================= */
     function generateCommands() {
-        const normalCommands = ['REG000000#', 'SMS1']; // Comandos iniciais obrigatórios
+        // Comandos iniciais obrigatórios (REG e SMS1 são adicionados aqui)
+        const normalCommands = ['REG000000#', 'SMS1']; 
         const rebootCommands = [];
         const lang = document.getElementById('langSelect').value;
         const password = document.getElementById('oldPassword').value.trim();
-        
-        // A senha do dispositivo, usada para HB/SHB.
         const devicePass = password || '000000'; 
 
         // --- Geração de Comandos Normais ---
@@ -556,7 +579,6 @@
             const user = document.getElementById('apnUser').value.trim();
             const pass = document.getElementById('apnPass').value.trim();
             if (apn) {
-                // APN: Sintaxe APN*NOME*USUARIO*SENHA
                 normalCommands.push(`APN*${apn}*${user}*${pass}`);
             }
         }
@@ -569,32 +591,23 @@
             const dns = document.getElementById('dnsHost').value.trim();
             const dnsPort = document.getElementById('dnsPort').value.trim();
             
-            // Lógica de validação IP vs DNS
-            if ((ip1 || ip2) && dns) {
-                alert('Escolha apenas IPs ou DNS, não ambos.');
-                return;
-            } 
-            
-            // COMANDOS CORRIGIDOS: FINALIZANDO COM # APÓS A PORTA
             if (ip1 || ip2) {
-                // Se for IP
-                if (ip1) normalCommands.push(`IP1#${ip1}#${ip1Port}#`); // Finalizando com #
-                if (ip2) normalCommands.push(`IP2#${ip2}#${ip2Port}#`); // Finalizando com #
+                if (ip1) normalCommands.push(`IP1#${ip1}#${ip1Port}#`); 
+                if (ip2) normalCommands.push(`IP2#${ip2}#${ip2Port}#`); 
             } else if (dns && dnsPort) {
-                // Se for DNS
-                normalCommands.push(`DNS#${dns}#${dnsPort}#`); // Finalizando com #
+                normalCommands.push(`DNS#${dns}#${dnsPort}#`); 
             }
         }
 
         if (document.getElementById('cmdHbShb').checked) {
             const hbMin = parseInt(document.getElementById('hbMin').value);
             const shbHours = parseInt(document.getElementById('shbHours').value);
-            // HB/SHB AINDA mantém a senha (formato padrão)
-            if (hbMin) normalCommands.push(`HB${hbMin * 60}#${devicePass}`);
-            if (shbHours) normalCommands.push(`SHB${shbHours * 3600}#${devicePass}`);
+            
+            // CORREÇÃO APLICADA: HB/SHB sem senha
+            if (hbMin) normalCommands.push(`HB${hbMin * 60}`);
+            if (shbHours) normalCommands.push(`SHB${shbHours * 3600}`);
         }
 
-        // NOVO: SENHA DO DISPOSITIVO
         if (document.getElementById('cmdPasswordGroup').checked) {
             const oldPass = document.getElementById('oldPassword').value.trim();
             const newPass = document.getElementById('newPassword').value.trim();
@@ -604,7 +617,6 @@
             }
         }
 
-        // NOVO: CONTROLE DE MOTOR
         if (document.getElementById('cmdEngineLockGroup').checked) {
             const engineToggle = document.getElementById('engineLockToggle').value;
             if (engineToggle) {
@@ -618,20 +630,19 @@
             }
         }
 
+        // --- Alertas e Funções ---
         if (document.getElementById('cmdIgniAlertGroup').checked) {
             normalCommands.push(document.getElementById('igniAlert').checked ? 'BJ1' : 'BJ0');
         }
-
+        
         if (document.getElementById('cmdGprsAlertGroup').checked) {
             normalCommands.push(document.getElementById('gprsAlert').checked ? 'JD1' : 'JD0');
         }
 
-        // NOVO: VIOLAÇÃO DE MÓDULO
         if (document.getElementById('cmdViolationGroup').checked) {
             normalCommands.push(document.getElementById('violationToggle').checked ? 'NEGATIVE' : 'MASTER');
         }
 
-        // NOVO: BOTÃO DE PÂNICO
         if (document.getElementById('cmdPanicGroup').checked) {
             normalCommands.push(document.getElementById('panicToggle').checked ? 'SLAVE' : 'MASTER');
         }
@@ -641,17 +652,18 @@
         }
 
         if (document.getElementById('cmdSpeedAlertGroup').checked) {
-            const speed = document.getElementById('speedValue').value.trim();
-            if (speed) {
-                normalCommands.push(lang === 'en' ? `SPEED${speed}` : `CS${speed}`);
+            const speedValue = document.getElementById('speedValue').value.trim();
+            if (speedValue) {
+                const cmd = lang === 'en' ? `SPEED${speedValue}` : `CS${speedValue}`;
+                normalCommands.push(cmd);
             } else {
-                normalCommands.push(lang === 'en' ? 'SPEED0' : 'SC0');
+                 normalCommands.push(lang === 'en' ? 'SPEED0' : 'SC0');
             }
         }
-        
+
         if (document.getElementById('cmdEcoModeGroup').checked) {
-            const ecoMode = document.getElementById('ecoMode').value;
-            if (ecoMode) normalCommands.push(ecoMode);
+            const modeValue = document.getElementById('ecoMode').value;
+            if (modeValue) normalCommands.push(modeValue);
         }
 
         if (document.getElementById('cmdLockTypeGroup').checked) {
@@ -660,84 +672,95 @@
         }
         
         if (document.getElementById('cmdDkGroup').checked) {
-            const dKValue = document.getElementById('dkValue').value.trim();
-            if (dKValue) normalCommands.push(`DK${dKValue}`);
+            const dkValue = document.getElementById('dkValue').value.trim();
+            if (dkValue) normalCommands.push(`DK${dkValue}`);
         }
-
+        
         if (document.getElementById('cmdIvGroup').checked) {
             normalCommands.push(document.getElementById('ivToggle').checked ? 'IVON' : 'IVOFF');
         }
-
+        
         if (document.getElementById('cmdTimezoneGroup').checked) {
-            const timezone = document.getElementById('timezoneSelect').value;
-            if (timezone) normalCommands.push(timezone);
+            const tz = document.getElementById('timezoneSelect').value;
+            if (tz) normalCommands.push(tz);
         }
-
+        
         if (document.getElementById('cmdGsSenseGroup').checked) {
-            const gSenseValue = document.getElementById('gsSenseValue').value.trim();
-            if (gSenseValue) normalCommands.push(`GS${gSenseValue}`);
+            const gsSenseValue = document.getElementById('gsSenseValue').value.trim();
+            if (gsSenseValue) normalCommands.push(`GS${gsSenseValue}`);
         }
 
         if (document.getElementById('cmdSenseGroup').checked) {
             const senseValue = document.getElementById('senseValue').value.trim();
             if (senseValue) {
-                 normalCommands.push(lang === 'en' ? `SENSE${senseValue}` : `ZD${senseValue}`);
+                normalCommands.push(lang === 'en' ? `SENSE${senseValue}` : `ZD${senseValue}`);
             }
         }
-        
-        // Comandos de Verificação e Posição (Requerem Resposta SMS)
+
+        // --- Comandos de Verificação e Posição ---
         if (document.getElementById('cmdLbsPosGroup').checked) {
             normalCommands.push(lang === 'en' ? 'LBS' : 'JZ');
         }
+        
         if (document.getElementById('cmdGpsPosGroup').checked) {
             normalCommands.push(lang === 'en' ? 'LOCA' : 'DW');
         }
+        
         if (document.getElementById('cmdGpsGoogleGroup').checked) {
             normalCommands.push(lang === 'en' ? 'GOOGLE' : 'G');
         }
+
         if (document.getElementById('cmdLbsToggleGroup').checked) {
             normalCommands.push(document.getElementById('lbsToggle').checked ? 'LBSON' : 'LBSOFF');
         }
+
         if (document.getElementById('cmdCheck').checked) {
             normalCommands.push(lang === 'en' ? 'CHECK' : 'ZT');
         }
+        
         if (document.getElementById('cmdStatus').checked) {
             normalCommands.push('STATUS');
         }
+
         if (document.getElementById('cmdImei').checked) {
             normalCommands.push('IMEI');
         }
+        
         if (document.getElementById('cmdIccid').checked) {
             normalCommands.push('ICCID');
         }
 
-        // --- Geração de Comandos de Reboot (SEMPRE POR ÚLTIMO) ---
+        // --- Comandos de Reboot (SEMPRE POR ÚLTIMO) ---
         if (document.getElementById('cmdRebootGroup').checked) {
-            rebootCommands.push(document.getElementById('rebootToggle').value);
+            const rebootType = document.getElementById('rebootToggle').value;
+            if (rebootType) {
+                rebootCommands.push(rebootType);
+            }
         }
 
-        // Combina e gera o output
-        const finalCommands = [...normalCommands, ...rebootCommands].join('\n');
-        appendToInput(finalCommands);
-        document.getElementById("outputText").value = ""; // Limpa a área de conversão
-        convert(); // Converte automaticamente para agrupar
+        // Junta, remove duplicatas e insere na caixa de ENTRADA (linha a linha)
+        let finalCommands = [...new Set(normalCommands.map(cmd => cmd.trim()).filter(cmd => cmd !== ''))];
+        finalCommands = finalCommands.concat(rebootCommands);
+        
+        // 1. Injeta os comandos na caixa de ENTRADA (linha a linha)
+        appendToInput(finalCommands.join('\n'));
+
+        // 2. Limpa a caixa de SAÍDA (Obriga o usuário a clicar em 'Converter')
+        document.getElementById("outputText").value = ""; 
     }
     
     // Função para alternar o modo escuro
     document.getElementById('toggleMode').addEventListener('click', function() {
         document.body.classList.toggle('dark-mode');
         const icon = this.querySelector('i');
-        if (document.body.classList.contains('dark-mode')) {
-            icon.classList.remove('bi-moon');
-            icon.classList.add('bi-sun');
-            this.textContent = ' Modo Claro';
-            this.prepend(icon);
-        } else {
-            icon.classList.remove('bi-sun');
-            icon.classList.add('bi-moon');
-            this.textContent = ' Modo Escuro';
-            this.prepend(icon);
-        }
+        const isDarkMode = document.body.classList.contains('dark-mode');
+
+        icon.classList.toggle('bi-moon', !isDarkMode);
+        icon.classList.toggle('bi-sun', isDarkMode);
+        
+        this.innerHTML = isDarkMode 
+            ? '<i class="bi bi-sun"></i> Modo Claro' 
+            : '<i class="bi bi-moon"></i> Modo Escuro';
     });
 </script>
 
